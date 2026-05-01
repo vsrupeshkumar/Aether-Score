@@ -1,0 +1,117 @@
+﻿version: '3.8'
+
+services:
+  # PostgreSQL database
+  postgres:
+    image: postgres:15-alpine
+    container_name: AETHER-SCORE-postgres
+    environment:
+      POSTGRES_DB: AETHER-SCORE
+      POSTGRES_USER: AETHER-SCORE
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-AETHER-SCORE_dev}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U AETHER-SCORE"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - AETHER-SCORE-network
+
+  # Redis for caching and queues
+  redis:
+    image: redis:7-alpine
+    container_name: AETHER-SCORE-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - AETHER-SCORE-network
+
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: AETHER-SCORE-backend
+    environment:
+      DATABASE_URL: postgresql+asyncpg://AETHER-SCORE:${POSTGRES_PASSWORD:-AETHER-SCORE_dev}@postgres:5432/AETHER-SCORE
+      REDIS_URL: redis://redis:6379/0
+      REDIS_CACHE_URL: redis://redis:6379/1
+      REDIS_QUEUE_URL: redis://redis:6379/2
+      QIE_RPC_URL: ${QIE_RPC_URL:-https://rpc1testnet.qie.digital/}
+      CREDIT_PASSPORT_NFT_ADDRESS: ${CREDIT_PASSPORT_NFT_ADDRESS:-}
+      BACKEND_PRIVATE_KEY: ${BACKEND_PRIVATE_KEY:-}
+      ENVIRONMENT: development
+      LOG_LEVEL: DEBUG
+    ports:
+      - "4000:4000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+      - /app/venv
+    networks:
+      - AETHER-SCORE-network
+    restart: unless-stopped
+
+  # Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: AETHER-SCORE-frontend
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:4000
+      NEXT_PUBLIC_ENVIRONMENT: development
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - AETHER-SCORE-network
+    restart: unless-stopped
+
+  # RQ Worker (Score Computation)
+  worker-score:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: AETHER-SCORE-worker-score
+    command: python scripts/start_worker.py score
+    environment:
+      DATABASE_URL: postgresql+asyncpg://AETHER-SCORE:${POSTGRES_PASSWORD:-AETHER-SCORE_dev}@postgres:5432/AETHER-SCORE
+      REDIS_URL: redis://redis:6379/0
+      REDIS_QUEUE_URL: redis://redis:6379/2
+      QIE_RPC_URL: ${QIE_RPC_URL:-https://rpc1testnet.qie.digital/}
+      CREDIT_PASSPORT_NFT_ADDRESS: ${CREDIT_PASSPORT_NFT_ADDRESS:-}
+      BACKEND_PRIVATE_KEY: ${BACKEND_PRIVATE_KEY:-}
+      ENVIRONMENT: development
+    depends_on:
+      - redis
+      - postgres
+    networks:
+      - AETHER-SCORE-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  AETHER-SCORE-network:
+    driver: bridge
+
+

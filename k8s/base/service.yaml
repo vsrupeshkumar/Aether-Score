@@ -1,0 +1,77 @@
+﻿apiVersion: v1
+kind: Service
+metadata:
+  name: backend
+  namespace: AETHER-SCORE
+  labels:
+    app: AETHER-SCORE
+    component: backend
+spec:
+  type: ClusterIP
+  ports:
+  - port: 4000
+    targetPort: 4000
+    protocol: TCP
+    name: http
+  selector:
+    app: AETHER-SCORE
+    component: backend
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  namespace: AETHER-SCORE
+  labels:
+    app: AETHER-SCORE
+    component: frontend
+spec:
+  type: ClusterIP
+  ports:
+  - port: 3000
+    targetPort: 3000
+    protocol: TCP
+    name: http
+  selector:
+    app: AETHER-SCORE
+    component: frontend
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: AETHER-SCORE
+  labels:
+    app: AETHER-SCORE
+    component: database
+spec:
+  type: ClusterIP
+  ports:
+  - port: 5432
+    targetPort: 5432
+    protocol: TCP
+    name: postgres
+  selector:
+    app: AETHER-SCORE
+    component: database
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+  namespace: AETHER-SCORE
+  labels:
+    app: AETHER-SCORE
+    component: cache
+spec:
+  type: ClusterIP
+  ports:
+  - port: 6379
+    targetPort: 6379
+    protocol: TCP
+    name: redis
+  selector:
+    app: AETHER-SCORE
+    component: cache
+
+

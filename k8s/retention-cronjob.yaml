@@ -1,0 +1,38 @@
+﻿apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: data-retention-cleanup
+  namespace: AETHER-SCORE
+spec:
+  schedule: "0 2 * * *"  # Daily at 2 AM
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: retention-cleanup
+            image: ghcr.io/AETHER-SCORE/backend:latest
+            command: ["python", "-c", "import asyncio; from services.retention import DataRetentionService; asyncio.run(DataRetentionService().cleanup_all(archive=True))"]
+            envFrom:
+            - configMapRef:
+                name: AETHER-SCORE-config
+            - secretRef:
+                name: AETHER-SCORE-secrets
+            env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: AETHER-SCORE-secrets
+                  key: DATABASE_URL
+            resources:
+              requests:
+                cpu: "200m"
+                memory: "256Mi"
+              limits:
+                cpu: "500m"
+                memory: "512Mi"
+          restartPolicy: OnFailure
+
+

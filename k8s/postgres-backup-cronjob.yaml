@@ -1,0 +1,90 @@
+﻿apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: postgres-backup
+  namespace: AETHER-SCORE
+spec:
+  schedule: "0 2 * * *"  # Daily at 2 AM
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: backup
+            image: postgres:15-alpine
+            command:
+            - /bin/sh
+            - -c
+            - |
+              apk add --no-cache postgresql-client gzip aws-cli
+              export PGPASSWORD="$DB_PASSWORD"
+              TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+              BACKUP_FILE="/backups/AETHER-SCORE_${ENVIRONMENT}_${TIMESTAMP}.sql.gz"
+              mkdir -p /backups
+              pg_dump -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" \
+                --no-owner --no-acl --clean --if-exists \
+                --format=custom | gzip > "$BACKUP_FILE"
+              if [ -f "$BACKUP_FILE" ] && [ -s "$BACKUP_FILE" ]; then
+                echo "Backup completed: $BACKUP_FILE"
+                if [ -n "$DB_BACKUP_S3_BUCKET" ]; then
+                  aws s3 cp "$BACKUP_FILE" "s3://${DB_BACKUP_S3_BUCKET}/${ENVIRONMENT}/"
+                fi
+              else
+                echo "Backup failed"
+                exit 1
+              fi
+            envFrom:
+            - configMapRef:
+                name: AETHER-SCORE-config
+            - secretRef:
+                name: AETHER-SCORE-secrets
+            env:
+            - name: DB_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: AETHER-SCORE-secrets
+                  key: DB_HOST
+            - name: DB_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: AETHER-SCORE-secrets
+                  key: DB_PORT
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: AETHER-SCORE-secrets
+                  key: DB_USER
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: AETHER-SCORE-secrets
+                  key: DB_PASSWORD
+            - name: DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: AETHER-SCORE-secrets
+                  key: DB_NAME
+            - name: DB_BACKUP_S3_BUCKET
+              valueFrom:
+                configMapRef:
+                  name: AETHER-SCORE-config
+                  key: DB_BACKUP_S3_BUCKET
+            volumeMounts:
+            - name: backups
+              mountPath: /backups
+            resources:
+              requests:
+                cpu: "500m"
+                memory: "512Mi"
+              limits:
+                cpu: "1000m"
+                memory: "1Gi"
+          volumes:
+          - name: backups
+            persistentVolumeClaim:
+              claimName: postgres-backups-pvc
+          restartPolicy: OnFailure
+
+

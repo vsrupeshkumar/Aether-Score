@@ -1,0 +1,33 @@
+﻿{
+  "monitors": [
+    {
+      "friendly_name": "AETHER-SCORE API - Liveness",
+      "url": "https://api.AETHER-SCORE.io/health",
+      "type": 1,
+      "interval": 300,
+      "timeout": 30,
+      "keyword_type": 1,
+      "keyword_value": "\"status\":\"healthy\"",
+      "alert_contacts": []
+    },
+    {
+      "friendly_name": "AETHER-SCORE API - Readiness",
+      "url": "https://api.AETHER-SCORE.io/health/ready",
+      "type": 1,
+      "interval": 300,
+      "timeout": 30,
+      "keyword_type": 1,
+      "keyword_value": "\"status\":\"ready\"",
+      "alert_contacts": []
+    }
+  ],
+  "alert_contacts": [
+    {
+      "type": 2,
+      "value": "team@AETHER-SCORE.io",
+      "friendly_name": "Team Email"
+    }
+  ]
+}
+
+

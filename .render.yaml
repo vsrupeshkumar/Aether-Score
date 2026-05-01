@@ -1,0 +1,62 @@
+﻿services:
+  - type: web
+    name: AETHER-SCORE-backend
+    env: python
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: cd backend && python scripts/validate_deployment.py && uvicorn app:app --host 0.0.0.0 --port $PORT --workers 1
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: REDIS_CACHE_URL
+        sync: false
+      - key: REDIS_QUEUE_URL
+        sync: false
+      - key: QIE_RPC_URL
+        sync: false
+      - key: CREDIT_PASSPORT_NFT_ADDRESS
+        sync: false
+      - key: BACKEND_PRIVATE_KEY
+        sync: false
+    healthCheckPath: /health/ready
+    # Auto-scaling configuration
+    scaling:
+      minInstances: 2
+      maxInstances: 10
+      targetCPUPercent: 70
+      targetMemoryPercent: 80
+
+  - type: worker
+    name: AETHER-SCORE-worker-score
+    env: python
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: cd backend && python scripts/start_worker.py score
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: REDIS_QUEUE_URL
+        sync: false
+      - key: QIE_RPC_URL
+        sync: false
+    scaling:
+      minInstances: 1
+      maxInstances: 5
+
+  - type: worker
+    name: AETHER-SCORE-worker-blockchain
+    env: python
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: cd backend && python scripts/start_worker.py blockchain
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: REDIS_QUEUE_URL
+        sync: false
+      - key: QIE_RPC_URL
+        sync: false
+    scaling:
+      minInstances: 1
+      maxInstances: 3
+
+

@@ -1,0 +1,36 @@
+﻿apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: AETHER-SCORE-prod
+
+bases:
+  - ../../base
+
+namePrefix: prod-
+
+commonLabels:
+  environment: production
+
+patchesStrategicMerge:
+  - configmap-patch.yaml
+
+configMapGenerator:
+  - name: AETHER-SCORE-config
+    behavior: merge
+    literals:
+      - ENVIRONMENT=production
+      - LOG_LEVEL=WARNING
+      - DB_POOL_SIZE=20
+      - RQ_WORKER_CONCURRENCY=8
+      - MIN_INSTANCES=3
+      - MAX_INSTANCES=20
+
+replicas:
+  - name: backend
+    count: 3
+  - name: frontend
+    count: 3
+  - name: worker-score
+    count: 3
+
+

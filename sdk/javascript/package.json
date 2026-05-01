@@ -1,0 +1,28 @@
+﻿{
+  "name": "@AETHER-SCORE/sdk",
+  "version": "1.0.0",
+  "description": "AETHER-SCORE JavaScript/TypeScript SDK for accessing credit scores and loan data",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "AETHER-SCORE",
+    "credit-score",
+    "defi",
+    "blockchain"
+  ],
+  "author": "AETHER-SCORE",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.6.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  }
+}
+
+

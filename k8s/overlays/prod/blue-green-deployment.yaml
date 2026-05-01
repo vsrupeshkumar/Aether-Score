@@ -1,0 +1,129 @@
+﻿apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-blue
+  namespace: AETHER-SCORE-prod
+  labels:
+    app: AETHER-SCORE-backend
+    version: blue
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: AETHER-SCORE-backend
+      version: blue
+  template:
+    metadata:
+      labels:
+        app: AETHER-SCORE-backend
+        version: blue
+    spec:
+      containers:
+      - name: app
+        image: AETHER-SCORE-backend:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 4000
+          name: http
+        env:
+        - name: ENVIRONMENT
+          value: "production"
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: AETHER-SCORE-secrets
+              key: database-url
+        - name: REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              name: AETHER-SCORE-secrets
+              key: redis-url
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 4000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health/ready
+            port: 4000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-green
+  namespace: AETHER-SCORE-prod
+  labels:
+    app: AETHER-SCORE-backend
+    version: green
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: AETHER-SCORE-backend
+      version: green
+  template:
+    metadata:
+      labels:
+        app: AETHER-SCORE-backend
+        version: green
+    spec:
+      containers:
+      - name: app
+        image: AETHER-SCORE-backend:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 4000
+          name: http
+        env:
+        - name: ENVIRONMENT
+          value: "production"
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: AETHER-SCORE-secrets
+              key: database-url
+        - name: REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              name: AETHER-SCORE-secrets
+              key: redis-url
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 4000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health/ready
+            port: 4000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+
+

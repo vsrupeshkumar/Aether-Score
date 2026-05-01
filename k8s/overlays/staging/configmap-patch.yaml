@@ -1,0 +1,11 @@
+﻿apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: AETHER-SCORE-config
+  namespace: AETHER-SCORE-staging
+data:
+  ENVIRONMENT: "staging"
+  LOG_LEVEL: "INFO"
+  SENTRY_TRACES_SAMPLE_RATE: "0.5"
+
+

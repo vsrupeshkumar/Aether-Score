@@ -1,0 +1,11 @@
+﻿apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: AETHER-SCORE-config
+  namespace: AETHER-SCORE-dev
+data:
+  ENVIRONMENT: "development"
+  LOG_LEVEL: "DEBUG"
+  SENTRY_TRACES_SAMPLE_RATE: "1.0"
+
+

@@ -1,0 +1,87 @@
+﻿groups:
+  - name: AETHER-SCORE_alerts
+    interval: 30s
+    rules:
+      # High Error Rate Alert
+      - alert: HighErrorRate
+        expr: rate(errors_total[5m]) > 10
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High error rate detected"
+          description: "Error rate is {{ $value }} errors/min, exceeding threshold of 10 errors/min"
+
+      # Slow Response Time Alert
+      - alert: SlowResponseTime
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 2
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Slow response times detected"
+          description: "P95 response time is {{ $value }}s, exceeding threshold of 2s"
+
+      # Service Down Alert
+      - alert: ServiceDown
+        expr: up{job="AETHER-SCORE"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "AETHER-SCORE service is down"
+          description: "Service has been down for more than 1 minute"
+
+      # Blockchain RPC Failures
+      - alert: BlockchainRPCFailures
+        expr: rate(blockchain_rpc_errors_total[5m]) > 5
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High blockchain RPC error rate"
+          description: "Blockchain RPC error rate is {{ $value }} errors/min"
+
+      # High Transaction Failure Rate
+      - alert: HighTransactionFailureRate
+        expr: |
+          rate(blockchain_transactions_total{status="error"}[5m]) /
+          rate(blockchain_transactions_total[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High blockchain transaction failure rate"
+          description: "Transaction failure rate is {{ $value | humanizePercentage }}, exceeding 10%"
+
+      # Score Computation Failures
+      - alert: ScoreComputationFailures
+        expr: rate(score_computations_total{status="error"}[5m]) > 2
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High score computation failure rate"
+          description: "Score computation error rate is {{ $value }} errors/min"
+
+      # Oracle Service Failures
+      - alert: OracleServiceFailures
+        expr: rate(oracle_calls_total{status="error"}[5m]) > 3
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High oracle service error rate"
+          description: "Oracle service error rate is {{ $value }} errors/min"
+
+      # High Active Requests
+      - alert: HighActiveRequests
+        expr: active_requests > 100
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High number of active requests"
+          description: "Active requests: {{ $value }}, exceeding threshold of 100"
+
+

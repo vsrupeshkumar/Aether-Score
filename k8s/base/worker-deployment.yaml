@@ -1,0 +1,97 @@
+﻿apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: worker-score
+  namespace: AETHER-SCORE
+  labels:
+    app: AETHER-SCORE
+    component: worker
+    worker-type: score
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: AETHER-SCORE
+      component: worker
+      worker-type: score
+  template:
+    metadata:
+      labels:
+        app: AETHER-SCORE
+        component: worker
+        worker-type: score
+    spec:
+      containers:
+      - name: worker
+        image: ghcr.io/AETHER-SCORE/worker-score:latest
+        imagePullPolicy: Always
+        command: ["python", "scripts/start_worker.py", "score"]
+        envFrom:
+        - configMapRef:
+            name: AETHER-SCORE-config
+        - secretRef:
+            name: AETHER-SCORE-secrets
+        resources:
+          requests:
+            cpu: "500m"
+            memory: "512Mi"
+          limits:
+            cpu: "1000m"
+            memory: "1Gi"
+        volumeMounts:
+        - name: logs
+          mountPath: /app/logs
+      volumes:
+      - name: logs
+        emptyDir: {}
+      restartPolicy: Always
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: worker-blockchain
+  namespace: AETHER-SCORE
+  labels:
+    app: AETHER-SCORE
+    component: worker
+    worker-type: blockchain
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: AETHER-SCORE
+      component: worker
+      worker-type: blockchain
+  template:
+    metadata:
+      labels:
+        app: AETHER-SCORE
+        component: worker
+        worker-type: blockchain
+    spec:
+      containers:
+      - name: worker
+        image: ghcr.io/AETHER-SCORE/worker-blockchain:latest
+        imagePullPolicy: Always
+        command: ["python", "scripts/start_worker.py", "blockchain"]
+        envFrom:
+        - configMapRef:
+            name: AETHER-SCORE-config
+        - secretRef:
+            name: AETHER-SCORE-secrets
+        resources:
+          requests:
+            cpu: "500m"
+            memory: "512Mi"
+          limits:
+            cpu: "1000m"
+            memory: "1Gi"
+        volumeMounts:
+        - name: logs
+          mountPath: /app/logs
+      volumes:
+      - name: logs
+        emptyDir: {}
+      restartPolicy: Always
+
+

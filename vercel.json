@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "frontend/package.json",
+      "use": "@vercel/next"
+    }
+  ],
+  "buildCommand": "cd frontend && npm run lint && npm run build",
+  "installCommand": "cd frontend && npm install"
+}

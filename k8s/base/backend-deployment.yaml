@@ -1,0 +1,75 @@
+﻿apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: AETHER-SCORE
+  labels:
+    app: AETHER-SCORE
+    component: backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: AETHER-SCORE
+      component: backend
+  template:
+    metadata:
+      labels:
+        app: AETHER-SCORE
+        component: backend
+    spec:
+      containers:
+      - name: backend
+        image: ghcr.io/AETHER-SCORE/backend:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 4000
+          name: http
+        envFrom:
+        - configMapRef:
+            name: AETHER-SCORE-config
+        - secretRef:
+            name: AETHER-SCORE-secrets
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: AETHER-SCORE-secrets
+              key: DATABASE_URL
+        - name: REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              name: AETHER-SCORE-secrets
+              key: REDIS_URL
+        resources:
+          requests:
+            cpu: "1000m"
+            memory: "1Gi"
+          limits:
+            cpu: "2000m"
+            memory: "2Gi"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 4000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health/ready
+            port: 4000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        volumeMounts:
+        - name: logs
+          mountPath: /app/logs
+      volumes:
+      - name: logs
+        emptyDir: {}
+      restartPolicy: Always
+
+

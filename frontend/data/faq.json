@@ -1,0 +1,56 @@
+﻿{
+  "faqs": [
+    {
+      "id": "1",
+      "question": "What is AETHER-SCORE?",
+      "answer": "AETHER-SCORE is an AI-powered credit scoring system built on the QIE blockchain. It generates credit scores based on your on-chain transaction history, wallet activity, and DeFi interactions."
+    },
+    {
+      "id": "2",
+      "question": "How is my credit score calculated?",
+      "answer": "Your credit score is calculated using machine learning models that analyze various factors including transaction frequency, token holdings, DeFi interactions, account age, and behavioral patterns. The score ranges from 0 to 1000."
+    },
+    {
+      "id": "3",
+      "question": "What is a risk band?",
+      "answer": "Risk bands categorize your creditworthiness: Band 1 (Low Risk, score 750+), Band 2 (Medium Risk, score 500-749), Band 3 (High Risk, score below 500). Lower risk bands may qualify for better loan terms."
+    },
+    {
+      "id": "4",
+      "question": "How can I improve my credit score?",
+      "answer": "You can improve your score by: maintaining consistent transaction activity, diversifying your token holdings, engaging in DeFi protocols responsibly, staking NCRD tokens, and avoiding suspicious patterns."
+    },
+    {
+      "id": "5",
+      "question": "What is staking and how does it help?",
+      "answer": "Staking NCRD tokens allows you to boost your credit tier. Bronze tier (500+ NCRD) gives +50 points, Silver tier (2,000+ NCRD) gives +150 points, and Gold tier (10,000+ NCRD) gives +300 points."
+    },
+    {
+      "id": "6",
+      "question": "Is my data private?",
+      "answer": "Yes, AETHER-SCORE respects your privacy. We only analyze on-chain public data. Your wallet address is used for scoring, but we comply with GDPR regulations and allow data deletion requests."
+    },
+    {
+      "id": "7",
+      "question": "How do I connect my wallet?",
+      "answer": "Click the 'Connect Wallet' button and select your preferred wallet (MetaMask or QIE Wallet). Approve the connection request in your wallet extension."
+    },
+    {
+      "id": "8",
+      "question": "What if my score seems incorrect?",
+      "answer": "Scores are recalculated periodically based on new transactions. If you believe there's an error, ensure your wallet has sufficient transaction history. You can also stake tokens to boost your score."
+    },
+    {
+      "id": "9",
+      "question": "Can I use my credit score for loans?",
+      "answer": "Yes! Your AETHER-SCORE score can be used by DeFi lending protocols on QIE to determine loan terms, interest rates, and collateral requirements. Higher scores may qualify for better terms."
+    },
+    {
+      "id": "10",
+      "question": "How often is my score updated?",
+      "answer": "Scores are automatically recalculated when new transactions are detected. You can also manually trigger a recalculation, though significant changes typically require new on-chain activity."
+    }
+  ]
+}
+
+

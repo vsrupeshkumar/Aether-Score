@@ -1,0 +1,196 @@
+﻿version: '3.8'
+
+services:
+  # PostgreSQL database
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-AETHER-SCORE}
+      POSTGRES_USER: ${POSTGRES_USER:-AETHER-SCORE}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_INITDB_ARGS: "-E UTF8 --locale=C"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backups:/backups
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-AETHER-SCORE}"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - AETHER-SCORE-network
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 4G
+        reservations:
+          cpus: '1'
+          memory: 2G
+
+  # Redis for caching and queues
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "--no-auth-warning", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - AETHER-SCORE-network
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 1G
+
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      args:
+        - ENVIRONMENT=production
+    image: ${DOCKER_REGISTRY:-ghcr.io}/${DOCKER_IMAGE_NAME:-AETHER-SCORE}/backend:${DOCKER_IMAGE_TAG:-latest}
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-AETHER-SCORE}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-AETHER-SCORE}
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379/0
+      REDIS_CACHE_URL: redis://:${REDIS_PASSWORD}@redis:6379/1
+      REDIS_QUEUE_URL: redis://:${REDIS_PASSWORD}@redis:6379/2
+      QIE_RPC_URL: ${QIE_RPC_URL}
+      CREDIT_PASSPORT_NFT_ADDRESS: ${CREDIT_PASSPORT_NFT_ADDRESS}
+      BACKEND_PRIVATE_KEY: ${BACKEND_PRIVATE_KEY}
+      ENVIRONMENT: production
+      LOG_LEVEL: INFO
+      SENTRY_DSN_BACKEND: ${SENTRY_DSN_BACKEND}
+      SENTRY_ENVIRONMENT: production
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - AETHER-SCORE-network
+    restart: always
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '1'
+          memory: 1G
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+      rollback_config:
+        parallelism: 1
+
+  # Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        - ENVIRONMENT=production
+    image: ${DOCKER_REGISTRY:-ghcr.io}/${DOCKER_IMAGE_NAME:-AETHER-SCORE}/frontend:${DOCKER_IMAGE_TAG:-latest}
+    environment:
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+      NEXT_PUBLIC_ENVIRONMENT: production
+      SENTRY_DSN_FRONTEND: ${SENTRY_DSN_FRONTEND}
+      SENTRY_ENVIRONMENT: production
+    depends_on:
+      - backend
+    networks:
+      - AETHER-SCORE-network
+    restart: always
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  # RQ Workers
+  worker-score:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: ${DOCKER_REGISTRY:-ghcr.io}/${DOCKER_IMAGE_NAME:-AETHER-SCORE}/worker-score:${DOCKER_IMAGE_TAG:-latest}
+    command: python scripts/start_worker.py score
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-AETHER-SCORE}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-AETHER-SCORE}
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379/0
+      REDIS_QUEUE_URL: redis://:${REDIS_PASSWORD}@redis:6379/2
+      QIE_RPC_URL: ${QIE_RPC_URL}
+      CREDIT_PASSPORT_NFT_ADDRESS: ${CREDIT_PASSPORT_NFT_ADDRESS}
+      BACKEND_PRIVATE_KEY: ${BACKEND_PRIVATE_KEY}
+      ENVIRONMENT: production
+    depends_on:
+      - redis
+      - postgres
+    networks:
+      - AETHER-SCORE-network
+    restart: always
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  worker-blockchain:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: ${DOCKER_REGISTRY:-ghcr.io}/${DOCKER_IMAGE_NAME:-AETHER-SCORE}/worker-blockchain:${DOCKER_IMAGE_TAG:-latest}
+    command: python scripts/start_worker.py blockchain
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-AETHER-SCORE}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-AETHER-SCORE}
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379/0
+      REDIS_QUEUE_URL: redis://:${REDIS_PASSWORD}@redis:6379/2
+      QIE_RPC_URL: ${QIE_RPC_URL}
+      CREDIT_PASSPORT_NFT_ADDRESS: ${CREDIT_PASSPORT_NFT_ADDRESS}
+      BACKEND_PRIVATE_KEY: ${BACKEND_PRIVATE_KEY}
+      ENVIRONMENT: production
+    depends_on:
+      - redis
+      - postgres
+    networks:
+      - AETHER-SCORE-network
+    restart: always
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  AETHER-SCORE-network:
+    driver: bridge
+
+

@@ -1,0 +1,65 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Gradient for circle outline -->
+    <linearGradient id="circleGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00BFFF;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#8A2BE2;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Gradient for N letter -->
+    <linearGradient id="letterGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00CCFF;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#AA00FF;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Glow filter -->
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Background circle (dark blue fill) -->
+  <circle cx="256" cy="256" r="200" fill="#2D2D44"/>
+  
+  <!-- Glowing gradient outline circle -->
+  <circle 
+    cx="256" 
+    cy="256" 
+    r="200" 
+    fill="none" 
+    stroke="url(#circleGradient)" 
+    stroke-width="20"
+    filter="url(#glow)"
+    opacity="0.9"
+  />
+  
+  <!-- Inner circle for depth -->
+  <circle 
+    cx="256" 
+    cy="256" 
+    r="180" 
+    fill="none" 
+    stroke="url(#circleGradient)" 
+    stroke-width="2"
+    opacity="0.3"
+  />
+  
+  <!-- Letter N with gradient -->
+  <text 
+    x="256" 
+    y="300" 
+    font-family="Arial, sans-serif" 
+    font-size="200" 
+    font-weight="bold" 
+    text-anchor="middle" 
+    dominant-baseline="central"
+    fill="url(#letterGradient)"
+    filter="url(#glow)"
+  >
+    N
+  </text>
+</svg>
