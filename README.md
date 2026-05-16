@@ -2,7 +2,7 @@ AetherScore — Probabilistic On-Chain Credit Intelligence Protocol
 
 AetherScore is a mathematically grounded, AI-driven credit inference system that constructs probabilistic trust profiles for blockchain wallets and encodes them into non-transferable on-chain identities, enabling risk-aware decentralized finance.
 
-	🚀 OVERVIEW
+	 OVERVIEW
 
 AetherScore replaces heuristic-based lending with a formalized credit estimation model built on statistical learning, behavioral finance signals, and on-chain state transitions.
 
